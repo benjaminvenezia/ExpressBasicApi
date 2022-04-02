@@ -6,6 +6,7 @@ const bodyParser = require("body-parser");
 const { success, getUniqueId } = require("./helper.js");
 
 let pokemons = require("./mock-pokemon");
+const { rsort } = require("semver");
 
 //On crée une instance d'express, il s'agit d'un petit serveur web sur lequel tournera l'api rest.
 const app = express();
@@ -57,6 +58,14 @@ app.put("/api/pokemons/:id", (req, res) => {
 
   const message = `Le pokemon ${pokemonUpdated.name} a bien été modifié.`;
   res.json(success(message, pokemonUpdated));
+});
+
+app.delete("/api/pokemons/:id", (req, res) => {
+  const id = parseInt(req.params.id);
+  const pokemonDeleted = pokemons.find((pokemon) => pokemon.id === id);
+  pokemons.filter((pokemon) => pokemon.id !== id);
+  const message = `Le pokémon ${pokemonDeleted.name} a bien été supprimé.`;
+  res.json(success(message, pokemonDeleted));
 });
 
 //On démarre l'api rest sur le port 3000 et on affiche un message de log dans le terminal de commande.

@@ -353,4 +353,17 @@ const pokemonUpdated = {...req.body, id: id}
 > Dans le Post nous avons des accolades supplémentaires entourant les propriétés ajouté au pokémon. Dans PUT on modifie qu'une seule propriété, il n y a donc pas besoin d'ajouter les accolades.
 
 ---
-## Delete ##
+
+## Delete
+
+```
+app.delete("api/pokemons/:id", (req, res) => {
+  const id = parseInt(req.params.id);
+  const pokemonDeleted = pokemons.find((pokemon) => pokemon.id === id);
+  pokemons.filter((pokemon) => pokemon.id !== id);
+  const message = `Le pokémon ${pokemonDeleted.name} a bien été supprimé.`;
+  res.json(success(message, pokemonDeleted));
+});
+```
+>res.json(success(message, pokemonDeleted));
+- On retourne le pokémon supprimé, on ne nous reprochera jamais de faire une API rest la plus pointue possible, il est d'ailleurs agréable d'avoir un retour sur la suppression.
