@@ -20,7 +20,9 @@ sequelize.initDb();
 //revient à écrire:
 //const findAllPokemons = require('./src/routes/findAllPokemons')
 //findAllPokemons(app) : app étant notre objet express
-require("./src/routes/findAllPokemons")(app);   
+require("./src/routes/findAllPokemons")(app); 
+require("./src/routes/findPokemonByPk")(app); 
+require("./src/routes/createPokemon")(app); 
 
 app.listen(
   port,
