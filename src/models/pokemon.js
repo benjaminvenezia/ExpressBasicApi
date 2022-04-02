@@ -27,10 +27,10 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         allowNull: false,
         get() {
-          return this.getDataValue("types").split(",");
+          return this.getDataValue('types').split(',')
         },
-        set() {
-          this.setDataValue("types", types.join());
+        set(types) {
+          this.setDataValue('types', types.join())
         },
       },
     },
