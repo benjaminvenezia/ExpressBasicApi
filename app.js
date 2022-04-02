@@ -2,7 +2,8 @@
 const express = require("express");
 const morgan = require("morgan");
 const favicon = require("serve-favicon");
-const { success } = require("./helper.js");
+const bodyParser = require("body-parser");
+const { success, getUniqueId } = require("./helper.js");
 
 let pokemons = require("./mock-pokemon");
 
@@ -12,7 +13,10 @@ const app = express();
 const port = 3000;
 
 //Middleware
-app.use(favicon(__dirname + "/favicon.ico")).use(morgan("dev"));
+app
+  .use(favicon(__dirname + "/favicon.ico"))
+  .use(morgan("dev"))
+  .use(bodyParser.json());
 
 //endpoint
 /**
@@ -33,6 +37,26 @@ app.get("/api/pokemons/:id", (req, res) => {
 app.get("/api/pokemons", (req, res) => {
   const message = "L'ensemble des pokémons ont été retournés. ";
   res.json(success(message, pokemons));
+});
+
+app.post("/api/pokemons", (req, res) => {
+  const id = getUniqueId(pokemons);
+  const pokemonCreated = { ...req.body, ...{ id: id, created: new Date() } };
+  pokemons.push(pokemonCreated);
+  const message = `Le pokemon ${pokemonCreated.name} a bien été crée.`;
+  res.json(success(message, pokemonCreated));
+});
+
+app.put("/api/pokemons/:id", (req, res) => {
+  const id = parseInt(req.params.id);
+  const pokemonUpdated = { ...req.body, id: id };
+  // Pour chaque pokémon de la liste on retourne exactement le même pokémon sauf s'il s'agit du pokémon à modifier.
+  pokemons = pokemons.map((pokemon) => {
+    return pokemon.id === id ? pokemonUpdated : pokemon;
+  });
+
+  const message = `Le pokemon ${pokemonUpdated.name} a bien été modifié.`;
+  res.json(success(message, pokemonUpdated));
 });
 
 //On démarre l'api rest sur le port 3000 et on affiche un message de log dans le terminal de commande.

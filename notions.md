@@ -221,4 +221,136 @@ requête HTTP    .       .  Réponse HTTP
 
 > L'ordre d'execution des Middlewares est extrêmement important. Par exemple, si vous avez un middleware pour les logs, et un autre pour les erreurs, il faut bien sûr activer les logs en premier. Si on le faisait en dernier, on ne loguerait rien du tout! Quand vous faites appel aux Middlewares, réfléchissez donc bien à l'ordre, car cela peut impacter fortement le fonctionnement de l'application.
 
---- 
+---
+
+## envoyer des informations
+
+### Il faut préciser
+
+1. **Le type d'action HTTP**
+   L'action permettant d'ajouter une nouvelle ressource est POST.
+2. **L'url de la ressource**
+   C'est l'emplacement de la ressource sur laquelle nous souhaitons intervenir, c'est à dire son URL. Dans notre cas, nous voulons ajouter un élément à la collection de ressources des pokémons ou "ressources pluriels". Concrètement il s'agit de "/api/pokemons".
+3. **Les données du pokémon**
+   Il s'agit des informations du nouveau pokémon que l'on souhaite ajouter à l'API Rest. du format Json
+
+---
+
+## Attribuer le bon id lors de la création
+
+```
+exports.getUniqueId = (pokemons) => {
+  const pokemonsIds = pokemons.map((pokemon) => pokemon.id);
+  const maxId = pokemonsIds.reduce((a, b) => Math.max(a, b));
+  const uniqueId = maxId + 1;
+
+  return uniqueId;
+};
+```
+
+**Attention: Cette méthode est valable si ce n'est pas la bdd qui effectue le travail**
+
+---
+
+## tester ses endpoins en POST
+
+- Depuis le navigateur on ne peut effectuer que des requêtes get.
+  On utilise donc Postman (plus à destination des entreprises) ou insomnia (plus simple, plus développeur friendly)
+
+---
+
+## deux choses à savoir pour manier le json
+
+1. On recoit les données sous la forme de chaîne de caractères
+
+```
+const userString = '{"name": "John", "age": 33}'
+```
+
+2. On parse la chaîne de caractères afin d'obtenir du JSON
+
+```
+const userJson = JSON.parse(userString)
+```
+
+---
+
+1. Pour obtenir les données "inverses" que l'on devra retourner au client, on utilise la méthose JSON.stringify
+
+```
+console.log(JSON.stringify(userJson)); // {"name": "John", "age": 33}
+```
+
+---
+
+**Il faut faire attention**
+
+```
+    const user String = '{"name": "John", "age": 33}'
+    const userJson = JSON.parse(userString)
+
+    console.log(userJSON.age) //affiche 33
+    console.log(userString.age) //affiche 'undefined'
+```
+
+> Une chaine de caractères n'aura jamais de propriété 'age' alors que c'est tout à fait possible pour un json!!
+
+### body parser
+
+On utilise donc un MIDDLEWARE nommé `body-parser` pour gérer le parsing pour nous.
+
+> npm install body-parser --save
+
+**On l'ajoute**
+
+```
+const bodyParser = require("body-parser");
+
+(...)
+//Middleware
+app
+  .use(favicon(__dirname + "/favicon.ico"))
+  .use(morgan("dev"))
+  .use(bodyParser.json());
+(...)
+```
+
+---
+
+## Modifier une donnée (PUT)
+
+- Pour modifier une donnée, on ne va pas interragir directement avec la donnée présente dans l'api. à la place, on va recréer un élément modifié et remplacer l'ancien.
+
+> Cela s'explique car si deux utilisateurs modifient un même élément au même moment, il existe un risque de collision. Si chaque client soumet une nouvelle version complète du pokémon les modifications peuvent s'enchaîner les unes à la suite des autres logiquement.
+> Autrement dit, chaque modification introduit qu'un seul et unique effet de bord sur le serveur plutôt que des changements de propriétés dans tous les sens.
+>
+> > Pour modifier seulement une partie d'une ressource il existe une autre opération nommée PATCH. Sans rentrer dans les détails, je vous recommande fortement d'utiliser systématiquement PUT. Il s'agit d'une opération beaucoup plus fiable pour construire votre API Rest et c'est la méthode utilisée par la majorité des API Rest.
+
+```
+app.put("/api/pokemons/:id", (req, res) => {
+  const id = parseInt(req.params.id);
+  const pokemonUpdated = { ...req.body, id: id };
+  // Pour chaque pokémon de la liste on retourne exactement le même pokémon sauf s'il s'agit du pokémon à modifier.
+  pokemons = pokemons.map((pokemon) => {
+    return pokemon.id === id ? pokemonUpdated : pokemon;
+  });
+
+  const message = `Le pokemon ${pokemonUpdated.name} a bien été modifié.`;
+  res.json(success(message, pokemonUpdated));
+});
+```
+
+### différence de syntaxe entre POST et PUT
+
+```
+//ajout d'un pokémon
+const pokemonCreated = {...req.body, ...{id: id, created: new Date()}}
+
+//modification d'un pokémon
+const pokemonUpdated = {...req.body, id: id}
+```
+
+> Dans le Post nous avons des accolades supplémentaires entourant les propriétés ajouté au pokémon. Dans PUT on modifie qu'une seule propriété, il n y a donc pas besoin d'ajouter les accolades.
+
+---
+## Delete ##
