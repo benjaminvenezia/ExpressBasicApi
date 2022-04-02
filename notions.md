@@ -452,3 +452,123 @@ sequelize
     console.error(`Impossible de se connecter à la base de données : ${error}`)
   );
 ```
+
+---
+
+## Notions avancée ORM
+
+**Models**
+
+- Les models sont l'essence même de sequelize.
+- Un modèle est une abstraction qui représente une table dans notre base de données avec Sequelize on va donc définir un modèle Pokémon qui représentera la table contenant les pokémons du côté de notre base de données.
+  Pour être plus concret, un modèle est un objet javascript fournit par sequelize que l'on peut paramétrer en fonction de nos propres besoins.
+- Cet objet spécifique contient plusieurs propriétés qui décrivent à sequelize la structure de l'entité qui doit être stockée.
+- Par exemple pour un pokémon, cela peut être le fait de sauvegarder son nom, ses points de vies, l'adresse de son image, etc.
+- pour chacune de ces propriétés nous devons également renseigner le type de la donnée, string; nombre; date?
+
+**exemple de modele**
+
+```
+module.exports = (sequelize, DataTypes) => {
+  return sequelize.define(
+    "Pokemon",
+    {
+      id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true,
+      },
+      name: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+      hp: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+      },
+      cp: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+      },
+      picture: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+      types: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+    },
+    {
+      timestamps: true,
+      createdAt: "created",
+      updatedAt: false,
+    }
+  );
+};
+```
+
+- Nous exportons une fonction qui possède deux paramètres.
+  - `sequelize` : représente notre connexion à la base de données, cet objet possède une propriété define qui permet de déclarer un nouveau modèle auprès de sequelize. Nous utilisons cette méthode define à la ligne 2.
+  - `DataTypes` : Permet de définir les types de données de chaque propriété de notre modèle, par exemple, la propriété name contiendra une chaîne de caractère et la propriété contenant des points de vies contiendra des entiers.
+- la propriété `define` prend elle même 3 paramètres afin de mettre en place un nouveau modèle. Cette méthode est très importante car Sequelize se base sur les modèles que nous déclarons pour construire les tables dans la base de données sql.
+  - ligne 2 : `'pokemon'` : Nous déclarons le modèle pokemon, Sequelize va donc créer la table correspondante (avec un s : pokemons)
+  - de id: à types: : La description de notre modèle, chaque propriété deviendra une colonne dans la table pokemons.
+  - timesstamps à updatedAt : Option de paramètrrage global.
+
+**mise à jour dans notre code**
+
+```
+const { Sequelize, DataTypes } = require("sequelize");
+const PokemonModel = require("./src/models/pokemon");
+
+(...)
+
+const Pokemon = PokemonModel(sequelize, DataTypes);
+
+sequelize
+  .sync({ force: true })
+  .then((_) =>
+    console.log('La base de données "Pokedex a bien été synchronisée')
+  );
+
+```
+
+**force:true**
+
+- cette option permet de supprimer complétement la table associée à chaque modèle avant d'effecuter une synchronisation en bon et dûe forme. On perd les données de la table entre chaque synchronisation, à terme on se débarassera de cette option. Pour le développement ça aide car on pourra repartir sur des données neuves à chaque redémarrage de notre api.
+
+**ajouter des pokemons**
+
+- Pour remplir notre table pokemons nous allons devoir créer des instances de pokémons grâce à notre modèle sequelize `PokemonModel`.
+- Chaque Modèle Sequelize possède une méthode `Create()`, elle permet de créer une nouvelle instance de Pokémon directement en bdd.
+
+```
+          Pokemon A
+        /           \
+TABLE   - Pokemon B - ModelPokemon
+        \           / (sequelize)
+          Pokemon...
+```
+
+**exemple concret**
+
+```
+const Pokemon = PokemonModel(sequelize, DataTypes);
+
+sequelize.sync({ force: true }).then((_) => {
+  console.log('La base de données "Pokedex a bien été synchronisée');
+
+  Pokemon.create({
+    name: "Bulbizarre",
+    hp: 25,
+    cp: 5,
+    picture:
+      "https://assets.pokemon.com/assets/cms2/img/pokedex/detail/001.png",
+    types: ["Plante", "Poison"].join(),
+  }).then((bulbizarre) => console.log(bulbizarre.toJSON()));
+});
+```
+
+- On utilise join car nous avons une chaîne de caractère en bdd, on utilisera split en retour.
+- toJSON() cette méthode fournie par sequelize est recommandée pour afficher correctement les informations des instances d'un modèle, en effet, sequelize attache tout un tas de propriétés et de méthodes sur les modèles en interne et la méthode `toJSON()` permet de n'afficher que les valeurs qui nous intéressent.

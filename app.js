@@ -3,10 +3,11 @@ const express = require("express");
 const morgan = require("morgan");
 const favicon = require("serve-favicon");
 const bodyParser = require("body-parser");
-const { Sequelize } = require("sequelize");
+const { Sequelize, DataTypes } = require("sequelize");
 const { success, getUniqueId } = require("./helper.js");
 
 let pokemons = require("./mock-pokemon");
+const PokemonModel = require("./src/models/pokemon");
 const { rsort } = require("semver");
 
 //On crée une instance d'express, il s'agit d'un petit serveur web sur lequel tournera l'api rest.
@@ -32,6 +33,24 @@ sequelize
   .catch((error) =>
     console.error(`Impossible de se connecter à la base de données : ${error}`)
   );
+
+//modèle
+const Pokemon = PokemonModel(sequelize, DataTypes);
+
+sequelize.sync({ force: true }).then((_) => {
+  console.log('La base de données "Pokedex a bien été synchronisée');
+
+  pokemons.map((pokemon) => {
+    Pokemon.create({
+      name: pokemon.name,
+      hp: pokemon.hp,
+      cp: pokemon.cp,
+      picture:
+        pokemon.picture,
+      types: pokemon.types.join(),
+    }).then((bulbizarre) => console.log(bulbizarre.toJSON()));
+  });
+});
 
 //Middleware
 app
