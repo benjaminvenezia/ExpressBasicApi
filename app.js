@@ -45,8 +45,7 @@ sequelize.sync({ force: true }).then((_) => {
       name: pokemon.name,
       hp: pokemon.hp,
       cp: pokemon.cp,
-      picture:
-        pokemon.picture,
+      picture: pokemon.picture,
       types: pokemon.types.join(),
     }).then((bulbizarre) => console.log(bulbizarre.toJSON()));
   });
@@ -57,55 +56,6 @@ app
   .use(favicon(__dirname + "/favicon.ico"))
   .use(morgan("dev"))
   .use(bodyParser.json());
-
-//endpoint
-/**
- * @param req : Object request correspondant à la requête reçue en entrée par notre endpoint
- * @param res : Objet response qu'on doit renvoyer depuis Express à notre client.
- * @see send : methode de l'objet response afin de retourner le message au client.
- */
-app.get("/", (req, res) => res.send("Hello, Express 100 👋"));
-
-app.get("/api/pokemons/:id", (req, res) => {
-  const id = parseInt(req.params.id);
-
-  const pokemon = pokemons.find((pokemon) => pokemon.id === id);
-  const message = "Un pokémon a bien été trouvé. ";
-  res.json(success(message, pokemon));
-});
-
-app.get("/api/pokemons", (req, res) => {
-  const message = "L'ensemble des pokémons ont été retournés. ";
-  res.json(success(message, pokemons));
-});
-
-app.post("/api/pokemons", (req, res) => {
-  const id = getUniqueId(pokemons);
-  const pokemonCreated = { ...req.body, ...{ id: id, created: new Date() } };
-  pokemons.push(pokemonCreated);
-  const message = `Le pokemon ${pokemonCreated.name} a bien été crée.`;
-  res.json(success(message, pokemonCreated));
-});
-
-app.put("/api/pokemons/:id", (req, res) => {
-  const id = parseInt(req.params.id);
-  const pokemonUpdated = { ...req.body, id: id };
-  // Pour chaque pokémon de la liste on retourne exactement le même pokémon sauf s'il s'agit du pokémon à modifier.
-  pokemons = pokemons.map((pokemon) => {
-    return pokemon.id === id ? pokemonUpdated : pokemon;
-  });
-
-  const message = `Le pokemon ${pokemonUpdated.name} a bien été modifié.`;
-  res.json(success(message, pokemonUpdated));
-});
-
-app.delete("/api/pokemons/:id", (req, res) => {
-  const id = parseInt(req.params.id);
-  const pokemonDeleted = pokemons.find((pokemon) => pokemon.id === id);
-  pokemons = pokemons.filter((pokemon) => pokemon.id !== id);
-  const message = `Le pokémon ${pokemonDeleted.name} a bien été supprimé.`;
-  res.json(success(message, pokemonDeleted));
-});
 
 //On démarre l'api rest sur le port 3000 et on affiche un message de log dans le terminal de commande.
 app.listen(
