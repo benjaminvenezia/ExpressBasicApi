@@ -356,14 +356,99 @@ const pokemonUpdated = {...req.body, id: id}
 
 ## Delete
 
-```
-app.delete("api/pokemons/:id", (req, res) => {
+````
+app.delete("/api/pokemons/:id", (req, res) => {
   const id = parseInt(req.params.id);
   const pokemonDeleted = pokemons.find((pokemon) => pokemon.id === id);
-  pokemons.filter((pokemon) => pokemon.id !== id);
+  pokemons = pokemons.filter((pokemon) => pokemon.id !== id);
   const message = `Le pokémon ${pokemonDeleted.name} a bien été supprimé.`;
   res.json(success(message, pokemonDeleted));
 });
-```
->res.json(success(message, pokemonDeleted));
+```js
+
+> res.json(success(message, pokemonDeleted));
+
 - On retourne le pokémon supprimé, on ne nous reprochera jamais de faire une API rest la plus pointue possible, il est d'ailleurs agréable d'avoir un retour sur la suppression.
+````
+
+---
+
+## ORM
+
+- Nous utilisons un ORM
+
+```
+                SQL                            Javascript
+                ----                           -----------
+        INSERT INTO table                       create()
+        VALUES ('valuer1, ...)
+
+    BASE DE DONNÉES <---------------- ORM <---------------- API REST
+
+```
+
+> C'est une technique de programmation puissante qui permet de convertir une base de données dans des langages comme le javascript. Cela permet de masquer le fait qu'il y a une base de donnée en arrière plan. On va interagir avec des objets javascript fournit par l'ORM, nul besoin d'apprendre le SQL.
+
+**Avantages de l'orm**
+
+1. Pas besoin de connaître SQL
+2. On utilise Javascript
+3. Abstraction de la base de données
+4. On manipule de simples objets Javascript
+5. Requêtes simples comprises: findaAll, findOne, etc.
+
+**sequelize**
+
+- Orm pour Mysql basé sur les promises. Il gère les traitement asynchrones de manière plus efficaces que de simples callbacks. Nous aurons que des traitements asynchrones car dès que nous appellons la BDD il y aura un délai de réponse.
+- Sequelize supporte la plupart des bases de données : postgreSql, mysql, sqlite, mssql ...
+
+`npm install sequelize --save`
+
+**ajout d'un driver**
+
+- Sequelize s'occupe pour nous de créer une couche d'abstraction par rapport à la base de données utilisée. Cependant, l'ORM, même si nous ne le voyons pas, doit réellement se connecter à la base de donnée qu'il y a derrière. C'est là que le driver rentre en jeu, chaque base de données SQL a son propre driver afin de permettre à l'orm d'interragir avec elle.
+  Nous utilisons Xammp, la base de donnée est MariaDb il faut donc installer le driver correspondant afin que Sequelize puisse se connecter à la base de données mariaDb présente en local.
+
+`npm install mariadb --save`
+
+**initialisation de l'orm**
+
+```
+const { Sequelize } = require("sequelize");
+(...)
+const sequelize = new Sequelize(
+    'pokedex',
+    'root',
+    '',
+    {
+        host: 'localhost',
+        dialect: 'mariadb',
+        dialectOptions: {
+            timezone: 'Etc/GMT-2'
+        },
+        logging: false
+    }
+)
+```
+
+**4 paramètres**
+
+1. `pokedex`: nom de la base de donnée que l'on souhaite créer.
+2. `root`: nom d'utilisateur
+3. `''`: mot de passe de la bdd
+4. - `host`: obligatoire / précise l'emplacement de la bdd
+   - `dialect`: nom du driver
+   - `timezone/logging`: permet d'éviter des affichages d'avertissements dans la console, non obligatoire.
+
+**lancer la connexion**
+
+```
+sequelize
+  .authenticate()
+  .then((_) =>
+    console.log("La connexion à la base de données a bien été établie.")
+  )
+  .catch((error) =>
+    console.error(`Impossible de se connecter à la base de données : ${error}`)
+  );
+```
