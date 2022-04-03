@@ -22,6 +22,9 @@ module.exports = (sequelize, DataTypes) => {
       name: {
         type: DataTypes.STRING,
         allowNull: false,
+        unique: {
+          msg: "Le nom est déjà pris en base de donnée.",
+        },
         validate: {
           notEmpty: {
             msg: "Le champ name ne peut être nul!",
