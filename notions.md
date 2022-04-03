@@ -572,3 +572,15 @@ sequelize.sync({ force: true }).then((_) => {
 
 - On utilise join car nous avons une chaîne de caractère en bdd, on utilisera split en retour.
 - toJSON() cette méthode fournie par sequelize est recommandée pour afficher correctement les informations des instances d'un modèle, en effet, sequelize attache tout un tas de propriétés et de méthodes sur les modèles en interne et la méthode `toJSON()` permet de n'afficher que les valeurs qui nous intéressent.
+
+---
+
+## recherche
+> On recherche un pokémon qui commence par le terme de recherche: 
+>>${name}%
+
+> On recherche un pokémon qui se termine par le terme de recherche: 
+>>%${name}
+
+> On recherche un pokémon qui contient le terme de recherche: 
+>>%{name}%
