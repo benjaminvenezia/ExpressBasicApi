@@ -1,21 +1,23 @@
 //On récupère la dépendance express dans node_modules
 const express = require("express");
-const morgan = require("morgan");
 const favicon = require("serve-favicon");
 const bodyParser = require("body-parser");
 const sequelize = require("./src/db/sequelize");
 const res = require("express/lib/response");
 
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 
 //Middleware
 app
   .use(favicon(__dirname + "/favicon.ico"))
-  .use(morgan("dev"))
   .use(bodyParser.json());
 
 sequelize.initDb();
+
+app.get('/', (req,res) => {
+  res.json('Helllloooo heroku! ')
+})
 
 //endpoints
 //revient à écrire:
